@@ -47,7 +47,7 @@ jobs:
       # ---- 第三方 API 地址（可选）----
       # 默认为空，使用官方 https://api.anthropic.com
       # 如需第三方代理，推送后在此处添加：api_base_url: 'https://your-proxy.example.com'
-
+      api_base_url: 'https://packyapi.com'
       # ---- 组织检查 ----
       # 留空以跳过组织成员检查（个人仓库 owner 会直接通过权限检查）
       org_name: ''
