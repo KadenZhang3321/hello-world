@@ -1,0 +1,57 @@
+# example-caller.yml
+#
+# 调用方示例文件 —— 可直接复制到目标仓库的 .github/workflows/ 目录使用。
+#
+# 当前配置：针对 KadenZhang3321/hello-world 个人仓库测试
+#   - auth_method: api_key（需设置 CLAUDE_API_KEY secret）
+#   - org_name: ''（跳过组织成员检查，仓库 owner 自动放行）
+#
+# 正式部署到 vllm-project 时，将 uses 改回 opensourceways/agent-skills/...
+# 并将 org_name 设为 'vllm-project'。
+
+name: Claude Bot
+
+on:
+  # Issue/PR 评论时触发（需在评论中 @claude）
+  issue_comment:
+    types: [created]
+
+  # 新建 Issue 时自动触发
+  issues:
+    types: [opened]
+
+# 工作流级别权限声明（调用方负责声明）
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  # id-token: write  # 仅 oidc 模式需要，api_key 模式可注释掉
+
+jobs:
+  claude:
+    # ⚠️ 测试期间指向个人 fork；正式部署改为 opensourceways/agent-skills/...@main
+    uses: KadenZhang3321/agent-skills/.github/workflows/_claude-code.yml@main
+
+    # 将调用方仓库的所有 secrets 透传给可复用工作流
+    secrets: inherit
+
+    with:
+      # ---- 模型配置 ----
+      model: 'claude-sonnet-4-5'
+      timeout_minutes: 60
+
+      # ---- 认证方式 ----
+      # 使用 API Key 模式（官方或第三方均可）
+      auth_method: 'api_key'
+
+      # ---- 第三方 API 地址（可选）----
+      # 默认为空，使用官方 https://api.anthropic.com
+      # 如需第三方代理，推送后在此处添加：api_base_url: 'https://your-proxy.example.com'
+
+      # ---- 组织检查 ----
+      # 留空以跳过组织成员检查（个人仓库 owner 会直接通过权限检查）
+      org_name: ''
+
+      # ---- 可选配置 ----
+      # setup_script: ''
+      # additional_claude_args: ''
