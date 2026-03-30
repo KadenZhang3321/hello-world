@@ -32,25 +32,20 @@ jobs:
     secrets: inherit
     with:
       # ---- 模型配置 ----
-      model: 'claude-sonnet-4'
+      # OpenRouter 模型格式：<provider>/<model-name>
+      model: 'anthropic/claude-opus-4-6'
       timeout_minutes: 60
 
       # ---- 认证方式 ----
-      # api_key: CLAUDE_API_KEY 由 opensourceways 组织级 Secret 统一提供，无需在本仓库单独设置
-      # oidc:    配置 AWS IAM OIDC 信任策略，填写 aws_role_arn
       auth_method: 'api_key'
-      # aws_region: 'us-east-1'
-      # aws_role_arn: 'arn:aws:iam::123456789012:role/github-actions-claude'
 
-      # ---- 第三方 API 地址（可选）----
-      # 留空使用官方 https://api.anthropic.com
-      # 填写后，CLAUDE_API_KEY 使用对应平台的 key
-      # api_base_url: 'https://your-proxy.example.com'
-      # 注意：部分第三方代理会屏蔽 GitHub Actions IP，如遇 403 请换用官方 API 或自建代理
+      # ---- API 配置（OpenRouter）----
+      api_base_url: 'https://openrouter.ai/api/v1'
+      api_format: 'openai'   # OpenRouter 使用 OpenAI 兼容格式
 
       # ---- 组织检查 ----
       # 填写组织名以启用成员检查；留空则跳过（适用于个人仓库或自定义鉴权场景）
-      org_name: 'vllm-project'
+      org_name: ''
 
       # ---- 可选配置 ----
       # setup_script: 'pip install boto3'
