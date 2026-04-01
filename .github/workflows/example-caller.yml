@@ -32,19 +32,12 @@ jobs:
     secrets: inherit
     with:
       # ---- 模型配置 ----
-      # OpenRouter 模型格式：<provider>/<model-name>
-      model: 'anthropic/claude-opus-4-6'
       timeout_minutes: 60
 
       # ---- 认证方式 ----
       auth_method: 'api_key'
 
-      # ---- API 配置（OpenRouter）----
-      api_base_url: 'https://openrouter.ai/api'
-      api_format: 'openai'   # OpenRouter 使用 OpenAI 兼容格式
-
       # ---- 组织检查 ----
-      # 填写组织名以启用成员检查；留空则跳过（适用于个人仓库或自定义鉴权场景）
       org_name: ''
 
       # ---- 可选配置 ----
