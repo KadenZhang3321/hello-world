@@ -33,7 +33,7 @@ jobs:
     with:
       # ---- 模型配置 ----
       timeout_minutes: 60
-
+      model: 'claude-sonnet-4-20250514'
       # ---- 认证方式 ----
       auth_method: 'api_key'
 
