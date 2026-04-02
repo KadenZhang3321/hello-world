@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   claude:
-    uses: opensourceways/agent-skills/.github/workflows/_claude-code.yml@main
+    uses: KadenZhang3321/agent-skills/.github/workflows/_claude-code.yml@main
     secrets: inherit
     with:
       # ---- 模型配置 ----
