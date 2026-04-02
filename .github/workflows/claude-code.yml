@@ -15,4 +15,5 @@ permissions:
 jobs:
   claude-code:
     uses: KadenZhang3321/agent-skills/.github/workflows/_claude-code.yml@main
-    secrets: inherit# additional_claude_args: ''
+    secrets: inherit
+    # additional_claude_args: ''
