@@ -1,19 +1,92 @@
+# example-caller.yml
+#
+# 手动触发模板 —— 复制到目标仓库的 .github/workflows/ 目录使用。
+# 当 PR 或 Issue 评论中包含 @claude 时，自动触发 Claude Code 分析。
+#
+# 前置条件（仅需一次）：
+#   在目标仓库 Settings > Secrets > Actions 中添加：
+#     DISPATCH_TOKEN = <由 agent-skills 管理员分发的 PAT，具备 public_repo 权限>
+#
+# 无需配置 CLAUDE_API_KEY —— API Key 统一由 agent-skills 管理。
 
 name: Claude Bot
 
 on:
   issue_comment:
     types: [created]
-  issues:
-    types: [opened]
 
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
 
 jobs:
-  claude-code:
-    uses: KadenZhang3321/agent-skills/.github/workflows/_claude-code.yml@main
-    secrets: inherit
-    # additional_claude_args: ''
+  trigger-claude:
+    name: Trigger Claude Code
+    runs-on: ubuntu-latest
+    # 只响应包含 @claude 的评论，忽略机器人账号
+    if: |
+      contains(github.event.comment.body, '@claude') &&
+      !endsWith(github.actor, '[bot]') &&
+      github.actor != 'dependabot'
+
+    steps:
+      # 检测当前评论是否来自 PR（而非普通 Issue）
+      - name: Detect PR context
+        id: context
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$REPO/pulls/$ISSUE_NUMBER")
+
+          if [[ "$HTTP_STATUS" == "200" ]]; then
+            echo "pr_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          else
+            echo "pr_number=" >> "$GITHUB_OUTPUT"
+          fi
+
+      # 发送 dispatch 到 agent-skills，触发 Claude Code
+      - name: Dispatch to agent-skills
+        env:
+          DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          CALLER_REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, subprocess, sys
+
+          payload = {
+            'caller_repo':      os.environ['CALLER_REPO'],
+            'pr_number':        os.environ.get('PR_NUMBER', ''),
+            'issue_number':     os.environ['ISSUE_NUMBER'],
+            'comment_body':     os.environ['COMMENT_BODY'],
+            'comment_author':   os.environ['COMMENT_AUTHOR'],
+            'allow_code_change': 'true',
+            'skill_name':       '',
+            'model':            'claude-sonnet-4-20250514',
+          }
+
+          dispatch_body = json.dumps({
+            'event_type':     'claude-request',
+            'client_payload': payload,
+          })
+
+          r = subprocess.run([
+            'curl', '-sf', '-X', 'POST',
+            '-H', f'Authorization: Bearer {os.environ["DISPATCH_TOKEN"]}',
+            '-H', 'Accept: application/vnd.github+json',
+            'https://api.github.com/repos/KadenZhang3321/agent-skills/dispatches',
+            '-d', dispatch_body,
+          ], capture_output=True, text=True)
+
+          if r.returncode != 0:
+            print(f'::error::Dispatch failed: {r.stderr}')
+            sys.exit(1)
+
+          print('Dispatched to agent-skills. Claude will post a comment shortly.')
+          PYEOF
