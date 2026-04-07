@@ -55,16 +55,14 @@ jobs:
             'curl', '-sf', '-X', 'POST',
             '-H', f'Authorization: Bearer {os.environ["DISPATCH_TOKEN"]}',
             '-H', 'Accept: application/vnd.github+json',
-            'https://github.com/KadenZhang3321/agent-skills/dispatches',
+            'https://api.github.com/repos/KadenZhang3321/agent-skills/dispatches',
             '-d', dispatch_body,
           ], capture_output=True, text=True)
-
 
           print(f'Dispatch result: returncode={r.returncode}')
           print(f'stdout: {r.stdout}')
           print(f'stderr: {r.stderr}')
 
-          
           if r.returncode != 0:
             print(f'::warning::Dispatch failed: {r.stderr}')
           else:
