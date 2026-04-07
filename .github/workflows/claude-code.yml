@@ -59,6 +59,12 @@ jobs:
             '-d', dispatch_body,
           ], capture_output=True, text=True)
 
+
+          print(f'Dispatch result: returncode={r.returncode}')
+          print(f'stdout: {r.stdout}')
+          print(f'stderr: {r.stderr}')
+
+          
           if r.returncode != 0:
             print(f'::warning::Dispatch failed: {r.stderr}')
           else:
