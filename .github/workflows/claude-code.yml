@@ -37,13 +37,13 @@ jobs:
             'caller_repo':       os.environ['CALLER_REPO'],
             'pr_number':         os.environ['PR_NUMBER'],
             'issue_number':      os.environ['ISSUE_NUMBER'],
-            'comment_body':      'Auto-triggered: Please review this PR, analyze code feasibility, and suggest improvements if needed.',
+            'comment_body':      'Auto-triggered: 请审查这个 PR 的代码可行性。同时请诊断这个 CI 问题：https://github.com/vllm-project/vllm-ascend/actions/runs/24059457276/job/70172601279',
+            'skill_name':        'infrastructure/github-action-diagnose',
             'comment_author':    os.environ['COMMENT_AUTHOR'],
             'allow_code_change': 'true',
-            'skill_name':        '',
             'model':             'claude-sonnet-4-20250514',
             'caller_image':      '',
-            'verify_command':    'javac *.java && java Main',
+            'verify_command':    'javac *.java && java -cp . Main',
           }
 
           dispatch_body = json.dumps({
