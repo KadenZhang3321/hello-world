@@ -32,5 +32,5 @@ jobs:
       allow_code_change: true
       model: 'claude-sonnet-4-20250514'
     secrets:
-      AGENT_PAT: ${{ secrets.AGENT_PAT }}
+      AGENT_PAT: ${{ secrets.DISPATCH_TOKEN }}
       CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
