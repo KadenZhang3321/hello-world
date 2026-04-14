@@ -22,7 +22,7 @@ jobs:
       contains(github.event.comment.body, '@claude') &&
       !endsWith(github.actor, '[bot]') &&
       github.actor != 'dependabot'
-    uses: opensourceways/agent-skills/.github/workflows/_claude-code.yml@main
+    uses: KadenZhang3321/agent-skills/.github/workflows/_claude-code.yml@main
     with:
       caller_repo: ${{ github.repository }}
       pr_number: ${{ github.event.issue.number }}
