@@ -1,0 +1,48 @@
+# apply-claude-patch.yml
+# 【可选】独立工作流：手动下载并应用指定 run 的 Claude patch artifact
+#
+# 使用方法：
+# 1. 将此文件复制到目标仓库的 .github/workflows/ 目录
+# 2. 在 Actions 页面手动触发（workflow_dispatch）
+# 3. 输入包含 claude-changes-patch artifact 的 workflow run ID
+# 4. 工作流会自动下载 patch 并应用到当前分支，然后 push
+
+name: Apply Claude Patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: '包含 claude-changes-patch artifact 的 workflow run ID'
+        required: true
+        type: string
+
+jobs:
+  apply-patch:
+    name: Download and Apply Patch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Download patch artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: claude-changes-patch
+          path: /tmp/patch
+          run-id: ${{ github.event.inputs.run_id }}
+          github-token: ${{ secrets.DISPATCH_TOKEN }}
+
+      - name: Apply patch and push
+        run: |
+          git config user.name "Claude Bot"
+          git config user.email "claude-bot@users.noreply.github.com"
+          git apply /tmp/patch/claude-changes.patch
+          git add -A
+          git commit -m "AI: apply Claude suggestions from run #${{ github.event.inputs.run_id }}"
+          git push
