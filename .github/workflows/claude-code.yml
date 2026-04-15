@@ -34,3 +34,49 @@ jobs:
     secrets:
       DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
       CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+
+
+      # 仅当 changes_detected == 'true' 时才会执行
+  claude-comment-apply:
+    if: ${{ needs.claude-comment.outputs.changes_detected == 'true' && github.event_name == 'issue_comment' }}
+    needs: claude-comment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Get PR branch
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName -q .headRefName)
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.branch }}
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Download patch artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: claude-changes-patch
+          path: /tmp/patch
+
+      - name: Apply patch and push
+        run: |
+          git config user.name "Claude Bot"
+          git config user.email "claude-bot@users.noreply.github.com"
+          if [ ! -s /tmp/patch/claude-changes.patch ]; then
+            echo "::warning::Patch file is empty, nothing to apply"
+            exit 0
+          fi
+          git apply /tmp/patch/claude-changes.patch
+          git add -A
+          git commit -m "AI: apply Claude suggestions"
+          git push
